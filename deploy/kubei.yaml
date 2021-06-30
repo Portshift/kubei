@@ -73,12 +73,18 @@ spec:
     metadata:
       labels:
         app: clair
-        kubeiShouldScan: "false"
     spec:
       initContainers:
       - name: check-db-ready
         image: postgres:12-alpine
         command: ['sh', '-c',  'until pg_isready -h postgres -p 5432;  do echo waiting for database; sleep 2; done;']
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
       containers:
       - name: clair
         image: gcr.io/eticloud/k8sec/clair-scan-server:2.1.6
@@ -86,6 +92,15 @@ spec:
         ports:
         - containerPort: 6060
         - containerPort: 6061
+        securityContext:
+          capabilities:
+            drop:
+            - all
+          runAsNonRoot: true
+          runAsGroup: 26
+          runAsUser: 26
+          privileged: false
+          allowPrivilegeEscalation: false
         resources:
           limits:
             cpu: 2000m
@@ -134,7 +149,6 @@ spec:
     metadata:
       labels:
         app: postgres
-        kubeiShouldScan: "false"
     spec:
       containers:
       - name: clair-db  
@@ -142,6 +156,15 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 5432
+        securityContext:
+          capabilities:
+            drop:
+            - all
+          runAsNonRoot: true
+          runAsGroup: 26
+          runAsUser: 26
+          privileged: false
+          allowPrivilegeEscalation: false
         resources:
           limits:
             cpu: 1500m
@@ -185,7 +208,6 @@ spec:
     metadata:
       labels:
         app: kubei
-        kubeiShouldScan: "false"
     spec:
       serviceAccountName: kubei
       initContainers:
@@ -200,6 +222,16 @@ spec:
               echo "waiting for clair to be ready";
               sleep 15;
             done
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 26
+          runAsGroup: 26
+          privileged: false
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
       containers:
       - name: kubei
         image: gcr.io/eticloud/k8sec/kubei:1.0.11
@@ -231,6 +263,16 @@ spec:
         ports:
         - containerPort: 8080
         - containerPort: 8081
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 26
+          runAsGroup: 26
+          privileged: false
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         resources:
           limits:
             cpu: 100m
